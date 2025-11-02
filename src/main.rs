@@ -1,7 +1,7 @@
 use sqlx::{FromRow, PgPool};
 use serde::{Deserialize, Serialize};
 use inquire::{Select, Text};
-// use std::process;
+use std::process;
 
 #[derive(Debug, Serialize, Deserialize, FromRow)]
 
@@ -44,6 +44,21 @@ async fn main() -> Result<(), sqlx::Error>{
                 }
                 println!()
             }
+            Ok("Update User") => {
+                let id = Text::new("Masukan ID User yang mau di update:")
+                .prompt()
+                .unwrap()
+                .parse::<i32>()
+                .unwrap();
+            let new_name = Text::new("Nama Baru : ").prompt().unwrap();
+            update_user(&pool, id, &new_name).await?;
+            }
+
+            Ok("Hapus User") => { }
+            Ok("Keluar") => {
+                println!("Keluar dari program...");
+                process::exit(0);
+            }
             _ => println!("Pilihan tidak valid."),
         }
     }
@@ -68,4 +83,14 @@ async fn get_users(pool: &PgPool) -> Result<Vec<User>, sqlx::Error>{
     .fetch_all(pool)
     .await?;
    Ok(users)
+}
+
+async fn update_user(pool: &PgPool, id: i32, new_name: &str)-> Result<(), sqlx::Error> {
+    sqlx::query("UPDATE users SET name = $1 WHERE id = $2")
+    .bind(new_name)
+    .bind(id)
+    .execute(pool)
+    .await?;
+println!("User dengan ID {} berhasil diupdate\n", id);
+Ok(())
 }
