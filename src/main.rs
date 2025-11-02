@@ -54,7 +54,15 @@ async fn main() -> Result<(), sqlx::Error>{
             update_user(&pool, id, &new_name).await?;
             }
 
-            Ok("Hapus User") => { }
+            Ok("Hapus User") => { 
+                let id = Text::new("Masukan ID user yang akan dihapus")
+                .prompt()
+                .unwrap()
+                .parse::<i32>()
+                .unwrap();
+            delete_user(&pool, id).await?;
+
+            }
             Ok("Keluar") => {
                 println!("Keluar dari program...");
                 process::exit(0);
@@ -92,5 +100,14 @@ async fn update_user(pool: &PgPool, id: i32, new_name: &str)-> Result<(), sqlx::
     .execute(pool)
     .await?;
 println!("User dengan ID {} berhasil diupdate\n", id);
+Ok(())
+}
+
+async fn delete_user(pool: &PgPool, id: i32)-> Result<(), sqlx::Error>{
+    sqlx::query("DELETE FROM users WHERE id = $1")
+    .bind(id)
+    .execute(pool)
+    .await?;
+println!("User dengan ID {} berhasil dihapus\n", id);
 Ok(())
 }
